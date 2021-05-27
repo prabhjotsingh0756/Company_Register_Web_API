@@ -1,0 +1,319 @@
+﻿@page
+@{}
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Company Register</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+<body>
+
+    <div>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-warning">
+            <a class="navbar-brand" href="#">Company Register</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarText">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item active">
+                        <button class="btn btn-outline-success" data-toggle="modal" data-target="#addCompany">Add Company </button>
+                    </li>
+                  
+                </ul>
+                
+            </div>
+        </nav>
+
+
+        <div class="container">
+           
+            <table class="table table-striped  table-primary">
+                <thead>
+                    <tr>
+                        <th scope="col">Company Name</th>
+                        <th scope="col">Annual Net Profit($) </th>
+                        <th scope="col">Number of Employees</th>
+                       
+
+                    </tr>
+                </thead>
+                <tbody id="allCompanies">
+                  
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+
+
+
+
+
+    <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.min.js"></script>
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery.templates/beta1/jquery.tmpl.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script>
+        var uri = 'api/Companies';
+
+        $(document).ready(function () {
+            // Gets all  companies
+            $.getJSON(uri)
+                .done(function (data) {
+
+                    $("#company").tmpl(data).appendTo("#allCompanies");
+                });
+        });
+
+
+
+        function getCompnanies() {
+
+               $.getJSON(uri)
+                   .done(function (data) {
+
+                       $("#allCompanies").text("");
+
+                    $("#company").tmpl(data).appendTo("#allCompanies");
+                });
+
+        }
+
+        function addCompany() {
+            var _name = $('#name').val();
+            var _annualNetProfit = parseInt($('#annualNetProfit').val());
+            var _numberOfEmployees = parseInt($('#numberOfEmployees').val());
+           
+           
+
+
+            var company = {
+                name :  _name,
+                annualNetProfit :_annualNetProfit,
+                numberOfEmployees: _numberOfEmployees
+           
+           
+            };
+
+            $.ajax({
+                type: "POST",
+                url: uri,
+                data: JSON.stringify(company),
+                contentType: "application/json; charset=utf-8"
+            }).done(function (response) {
+                $("#result").html("Company Added");
+                getCompnanies();
+            }).fail(function (jqXHR, textStatus) {
+                          $("#result").html("Error Adding company");
+               });
+
+
+
+
+        }
+
+
+
+
+
+        function updateCompany() {
+             var _name = $('#_name').val();
+            var _annualNetProfit = parseInt($('#_annualNetProfit').val());
+            var _numberOfEmployees = parseInt($('#_numberOfEmployees').val());
+
+
+            
+            var company = {
+                id: parseInt($('#_id').val()),
+                name : _name,
+                annualNetProfit : _annualNetProfit,
+                numberOfEmployees :_numberOfEmployees
+               
+           
+            };
+
+            $.ajax({
+                type: "PUT",
+                url: uri+"/"+ $('#_id').val(),
+                data: JSON.stringify(company),
+                contentType: "application/json; charset=utf-8"
+            }).done(function (response) {
+                $("#resultUpdate").html("Updated Company");
+                getCompnanies();
+            }).fail(function (jqXHR, textStatus) {
+                          $("#resultUpdate").html("Error occured while updating the company");
+               });;
+
+
+
+
+        }
+
+
+
+        function remove(id) {
+
+
+          var yes =  confirm("Delete this record?");
+
+            if (yes) {
+                $.ajax({
+                    type: "DELETE",
+                    url: uri + "/" + id,
+
+                }).done(function (response) {
+
+                    getCompnanies();
+                });
+
+            }
+
+
+        }
+
+
+         
+
+
+        function getCompany(id) {
+
+             $.ajax({
+                type: "GET",
+                url: uri+"/"+id,
+               contentType: "application/json"
+             }).done(function (response) {
+
+                  $('#_id').val(response.id);
+                 $('#_name').val(response.name) ;
+                 $('#_annualNetProfit').val(response.annualNetProfit);
+                 $('#_numberOfEmployees').val(response.numberOfEmployees);
+             
+
+              
+
+
+            });
+
+
+        }
+    </script>
+
+    
+
+    <script id="company" type="text/x-jquery-tmpl">
+       
+        <tr>
+
+            <td> ${name}</td>
+            <td>${annualNetProfit}</td>
+            <td>${numberOfEmployees}</td>
+         
+
+            <td> <button class="btn btn-outline-primary" onclick="getCompany('${id}')" data-toggle="modal" data-target="#updateCompany">Update</button></td>
+            <td> <a href="#" class="btn btn-outline-danger" onclick="remove('${id}')">Delete</a></td>
+
+        </tr>
+    </script>
+
+
+
+    <div class="modal" tabindex="-1" role="dialog" id="addCompany">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Company</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="name">Name</label>
+                            <input type="text" class="form-control" id="name" >
+
+                        </div>
+                        <div class="form-group">
+                            <label for="model">Annual Net Profit</label>
+                            <input type="number" class="form-control" id="annualNetProfit" >
+
+                        </div>
+                        <div class="form-group">
+                            <label for="model">Employee Count</label>
+                            <input type="number" class="form-control" id="numberOfEmployees">
+
+                        </div>
+                       
+                       
+
+                        <div class="form-group" id="result">
+
+
+                        </div>
+                        <button type="button" onclick="addCompany()" class="btn btn-primary">Add</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <div class="modal" tabindex="-1" role="dialog" id="updateCompany">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Update</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+
+                        <div class="form-group">
+
+                            <input type="hidden" class="form-control" id="_id">
+
+                        </div>
+
+                        <div class="form-group">
+                            <label for="name">Name</label>
+                            <input type="text" class="form-control" id="_name">
+
+                        </div>
+                        <div class="form-group">
+                            <label for="model">Annual Net Profit</label>
+                            <input type="number" class="form-control" id="_annualNetProfit">
+
+                        </div>
+                        <div class="form-group">
+                            <label for="model">Employee Count</label>
+                            <input type="number" class="form-control" id="_numberOfEmployees">
+
+                        </div>
+
+
+                        <div class="form-group" id="resultUpdate">
+
+
+                        </div>
+                        <button type="button" onclick="updateCompany()" class="btn btn-primary">Update</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
